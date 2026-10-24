@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Previsioni petrolio WTI oggi con intelligenza artificiale</title>
+<meta name="description" content="Ogni giorno un modello di machine learning analizza il petrolio WTI e indica la tendenza per la seduta successiva. Gratuito, a scopo didattico.">
+<!-- DOPO la pubblicazione sostituisci l'URL qui sotto con quello reale della pagina -->
+<link rel="canonical" href="https://rocco1967!.github.io/merlin/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="it_IT">
+<meta property="og:title" content="Previsioni petrolio WTI oggi con intelligenza artificiale">
+<meta property="og:description" content="Un modello di machine learning indica ogni giorno la tendenza del petrolio WTI per la seduta successiva. Gratuito e didattico.">
+<meta property="og:url" content="https://rocco1967!.github.io/merlin/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛢️%3C/text%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Cos’è il WTI?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Il West Texas Intermediate è un petrolio greggio statunitense, uno dei principali riferimenti mondiali per il prezzo del petrolio insieme al Brent."}},
+    {"@type": "Question", "name": "Ogni quanto si aggiorna Merlin?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Una volta al giorno, con i dati di Yahoo Finance riferiti all’orario di New York."}},
+    {"@type": "Question", "name": "Perché una finestra di soli 7 giorni?",
+     "acceptedAnswer": {"@type": "Answer", "text": "È una scelta di progetto: una finestra corta permette al modello di reagire rapidamente ai cambiamenti del mercato, ma con pochi dati il modello può essere instabile."}},
+    {"@type": "Question", "name": "La curva di equity è un risultato reale?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. È una simulazione su dati storici, senza costi di transazione, slippage o leva. I risultati passati non sono indicativi di quelli futuri."}},
+    {"@type": "Question", "name": "Merlin è gratuito?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Sì, è gratuito e non prevede abbonamenti, commissioni né intermediazione."}}
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --bg: #f3f4f4;
+    --surface: #ffffff;
+    --ink: #15222b;
+    --muted: #55646e;
+    --line: #d5dbde;
+    --amber: #a85f00;
+    --amber-soft: #fbeccf;
+    --up: #1d6b45;
+    --down: #a3322b;
+    --flat: #6a767e;
+    --warn-bg: #fff4dc;
+    --warn-line: #e0b45a;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10191f;
+      --surface: #17232b;
+      --ink: #e9eef0;
+      --muted: #9fb0b9;
+      --line: #2a3a44;
+      --amber: #f0a73a;
+      --amber-soft: #3a2a10;
+      --up: #55c08a;
+      --down: #ef7d74;
+      --flat: #93a2ab;
+      --warn-bg: #2f2412;
+      --warn-line: #7a5a1c;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 1.0625rem/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem; }
+  header.hero { padding: 3.5rem 0 2rem; }
+  h1, h2, h3 {
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.2;
+    margin: 0 0 .75rem;
+    font-weight: 700;
+  }
+  h1 { font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -.01em; }
+  h2 { font-size: 1.6rem; margin-top: 3rem; }
+  h3 { font-size: 1.1rem; font-family: inherit; margin-top: 1.5rem; }
+  p { margin: 0 0 1rem; max-width: 40rem; }
+  .lead { font-size: 1.2rem; color: var(--muted); }
+
+  /* Elemento centrale: le tre indicazioni del modello */
+  .signal {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 1.75rem 0 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .signal div { padding: 1rem .75rem; text-align: center; border-left: 1px solid var(--line); }
+  .signal div:first-child { border-left: 0; }
+  .signal strong { display: block; font-size: 1.05rem; }
+  .signal span { font-size: .85rem; color: var(--muted); }
+  .signal .up strong { color: var(--up); }
+  .signal .flat strong { color: var(--flat); }
+  .signal .down strong { color: var(--down); }
+
+  .cta {
+    display: inline-block;
+    background: var(--amber);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    padding: .8rem 1.4rem;
+    border-radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cta { color: #1b1203; } }
+  .cta:hover { filter: brightness(1.08); }
+  .cta:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+  .warning {
+    background: var(--warn-bg);
+    border-left: 4px solid var(--warn-line);
+    padding: 1rem 1.1rem;
+    border-radius: 6px;
+    margin: 1.75rem 0;
+    font-size: .98rem;
+  }
+  ul { padding-left: 1.2rem; max-width: 40rem; }
+  li { margin-bottom: .5rem; }
+  a { color: var(--amber); }
+
+  details { border-top: 1px solid var(--line); padding: .9rem 0; max-width: 40rem; }
+  details:last-of-type { border-bottom: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { margin: .6rem 0 0; color: var(--muted); }
+
+  footer { margin: 4rem 0 2rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .92rem; color: var(--muted); }
+  footer h2 { font-size: 1.15rem; margin-top: 1.5rem; }
+  @media (max-width: 30rem) {
+    .signal { grid-template-columns: 1fr; }
+    .signal div { border-left: 0; border-top: 1px solid var(--line); }
+    .signal div:first-child { border-top: 0; }
+  }
+  @media (prefers-reduced-motion: no-preference) { .cta { transition: filter .15s; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>Previsioni sul petrolio WTI con intelligenza artificiale</h1>
+    <p class="lead">Merlin è un esperimento gratuito di machine learning. Ogni giorno elabora i prezzi del petrolio greggio WTI e indica la tendenza attesa per la seduta successiva.</p>
+
+    <div class="signal" role="group" aria-label="Le tre indicazioni possibili del modello">
+      <div class="up"><strong>Rialzista</strong><span>posizione long (buy)</span></div>
+      <div class="flat"><strong>Neutra</strong><span>nessuna posizione (flat)</span></div>
+      <div class="down"><strong>Ribassista</strong><span>posizione short</span></div>
+    </div>
+
+    <a class="cta" href="https://merlin.streamlit.app">Apri Merlin</a>
+
+    <p class="warning" role="note"><strong>Avvertenza:</strong> Merlin ha finalità esclusivamente informative e didattiche. Le indicazioni sono generate automaticamente e non costituiscono consulenza in materia di investimenti né invito ad acquistare o vendere strumenti finanziari. Il trading su futures comporta un rischio elevato di perdita del capitale.</p>
+  </header>
+
+  <main>
+    <h2>Come funziona</h2>
+    <ul>
+      <li><strong>Dati.</strong> I prezzi giornalieri dei futures sul WTI (ticker CL=F) arrivano da Yahoo Finance, con aggiornamento in base all’orario di New York.</li>
+      <li><strong>Finestra mobile di 7 giorni.</strong> Il modello viene addestrato su una finestra scorrevole che considera solo gli ultimi 7 giorni di dati, così si adatta ai cambiamenti recenti del mercato.</li>
+      <li><strong>Un’indicazione al giorno.</strong> Per la seduta successiva il modello restituisce una tra tre indicazioni: rialzista, neutra o ribassista.</li>
+      <li><strong>Curva di equity.</strong> L’app mostra come sarebbe evoluto un capitale ipotetico seguendo le indicazioni del modello. È una simulazione, non un risultato reale.</li>
+    </ul>
+
+    <h2>Domande frequenti</h2>
+
+    <details>
+      <summary>Cos’è il WTI?</summary>
+      <p>Il West Texas Intermediate è un petrolio greggio statunitense, uno dei principali riferimenti mondiali per il prezzo del petrolio insieme al Brent.</p>
+    </details>
+    <details>
+      <summary>Ogni quanto si aggiorna Merlin?</summary>
+      <p>Una volta al giorno, con i dati di Yahoo Finance riferiti all’orario di New York.</p>
+    </details>
+    <details>
+      <summary>Cosa significano rialzista, neutra e ribassista?</summary>
+      <p>Sono le tre indicazioni del modello sulla direzione attesa per la seduta successiva: prezzo in crescita, nessuna indicazione chiara, prezzo in calo.</p>
+    </details>
+    <details>
+      <summary>Perché una finestra di soli 7 giorni?</summary>
+      <p>È una scelta di progetto: una finestra corta permette al modello di reagire rapidamente ai cambiamenti del mercato. Ha però un limite: con pochi dati il modello può essere instabile e dare indicazioni che cambiano spesso.</p>
+    </details>
+    <details>
+      <summary>La curva di equity è un risultato reale?</summary>
+      <p>No. È una simulazione su dati storici. Non include costi di transazione, commissioni, slippage, leva o margini e può risentire di overfitting, cioè di un modello che si adatta troppo bene al passato e funziona peggio sul futuro. I risultati passati non sono indicativi di quelli futuri.</p>
+    </details>
+    <details>
+      <summary>Quanto è affidabile il modello?</summary>
+      <p>Nessun modello prevede i mercati con certezza e questo può sbagliare, anche spesso. Non va usato come unica base per decisioni di investimento.</p>
+    </details>
+    <details>
+      <summary>Posso usare Merlin per fare trading?</summary>
+      <p>Merlin è un progetto didattico. Ogni decisione operativa è una tua responsabilità; per consigli personalizzati rivolgiti a un consulente finanziario abilitato.</p>
+    </details>
+    <details>
+      <summary>Merlin è gratuito?</summary>
+      <p>Sì, è gratuito e non prevede abbonamenti, commissioni né intermediazione.</p>
+    </details>
+
+    <p style="margin-top:2rem"><a class="cta" href="https://merlin.streamlit.app">Apri Merlin</a></p>
+  </main>
+
+  <footer>
+    <h2>Chi siamo</h2>
+    <p>Merlin è un progetto indipendente di [Gianfranco.F.], nato per sperimentare il machine learning sulle serie storiche del petrolio. Contatti: [LINK A MODULO DI CONTATTO O PROFILO LINKEDIN].</p>
+
+    <h2>Note legali e avvertenze sui rischi</h2>
+    <p><strong>Cos’è Merlin.</strong> Merlin è un progetto personale, gratuito e senza scopo di lucro, che elabora i prezzi storici del petrolio WTI con un modello di machine learning per produrre indicazioni di tendenza a scopo didattico.</p>
+    <p><strong>Nessuna consulenza finanziaria.</strong> Le indicazioni mostrate sono output automatici di un algoritmo. Non tengono conto della situazione finanziaria, degli obiettivi o della propensione al rischio di chi le consulta e non costituiscono consulenza in materia di investimenti, né ricerca in materia di investimenti, né sollecitazione al pubblico risparmio. L’autore non è un consulente finanziario abilitato.</p>
+    <p><strong>Rischi.</strong> Il petrolio e i relativi futures sono strumenti molto volatili. Operare con leva o su derivati può comportare perdite anche superiori al capitale investito. Il modello può sbagliare e i risultati passati non garantiscono quelli futuri.</p>
+    <p><strong>Dati.</strong> I prezzi provengono da Yahoo Finance e possono essere ritardati, incompleti o errati. Non si garantiscono accuratezza, continuità o disponibilità del servizio, che può essere modificato o interrotto in qualsiasi momento.</p>
+    <p><strong>Responsabilità.</strong> L’autore declina ogni responsabilità per perdite o danni derivanti dall’uso delle informazioni presenti. Ogni decisione di investimento è presa autonomamente e sotto la piena responsabilità dell’utente, che è invitato a rivolgersi a un professionista abilitato.</p>
+  </footer>
+
+</div>
+</body>
+</html>
